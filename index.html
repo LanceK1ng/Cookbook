@@ -449,9 +449,10 @@ document.addEventListener('click',function(e){
     if(!n){toast('Give the recipe a name');$('#fn').focus();return}
     var ing=[].slice.call(document.querySelectorAll('#ings .ir')).map(function(w){return{id:w.dataset.id||uid(),q:numFrom(w.querySelector('.iq').value)[0],u:w.querySelector('.iu').value,n:w.querySelector('.ib').value.trim(),p:w.querySelector('.ip').value.trim()}}).filter(function(i){return i.n}),st=[].slice.call(document.querySelectorAll('#steps .sb')).map(function(x){return x.value.trim()}).filter(Boolean);
     var sv=parseInt($('#fv').value,10);sv=sv>0?Math.min(sv,99):null;var u=$('#fu').value.trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;
+    var savedId=editId;
     if(editId){var r=rec(editId);r.name=n;r.ing=ing;r.steps=st;r.src=u;if(r.serves!==sv&&S.sv[wk()])delete S.sv[wk()][r.id];r.serves=sv;r.img=draftImg;if(!draftImg||draftImg.indexOf('data:')===0)delete r.imgId;r.cats=draftCats.slice()}
-    else S.recipes.push({id:uid(),name:n,ing:ing,steps:st,src:u,serves:sv,img:draftImg,cats:draftCats.slice(),notes:'',last:0});
-    editId=null;tab='book';q='';save();toast('Recipe saved');window.scrollTo(0,0)}
+    else{var nid=uid();S.recipes.push({id:nid,name:n,ing:ing,steps:st,src:u,serves:sv,img:draftImg,cats:draftCats.slice(),notes:'',last:0});savedId=nid}
+    editId=null;tab='book';q='';save();openId=savedId;toast('Recipe saved');window.scrollTo(0,0)}
   else if(a==='addi'){var t=$('#ni').value.trim();if(!t)return;var pl=parseLine(t);if(!pl.n)return;S.list.push({id:uid(),q:pl.q,u:pl.u,n:pl.n,src:''});save()}
   else if(a==='tog'){var tk=b.dataset.k;S.done[tk]=!S.done[tk];save()}
   else if(a==='deli'){S.list=S.list.filter(function(i){return gk(i)!==b.dataset.k});save()}
