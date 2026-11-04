@@ -126,7 +126,7 @@ function guess(n){var w=nk(n);for(var i=0;i<AK.length;i++)if(AK[i][1].test(w))re
 function aisleFor(n,f){var o=(S.aisles||{})[nk(n)];if(o)return o;if(f==='can')return 'Pantry';return guess(n)}
 function wshuf(a){return a.map(function(r){return{r:r,k:Math.pow(Math.random(),1/(r.fav?3:1))}}).sort(function(x,y){return y.k-x.k}).map(function(x){return x.r})}
 function swapCat(o,nw){var f=function(a){var out=[];(a||[]).forEach(function(c){c=(c===o?nw:c);if(c&&out.indexOf(c)<0)out.push(c)});return out};S.recipes.forEach(function(r){if(r.cats&&r.cats.indexOf(o)>=0)r.cats=f(r.cats)});S.want=f(S.want);draftCats=f(draftCats);bookCats=f(bookCats)}
-function mgrHtml(){return S.cats.map(function(c,i){return '<div class="mrow"><input type="text" class="mc" data-i="'+i+'" value="'+esc(c)+'" maxlength="30" aria-label="Category name"><button class="ic hot" data-a="cdel" data-i="'+i+'" aria-label="Delete category">'+(delArm===i?'Delete?':'\u2715')+'</button></div>'}).join('')+'<p class="hint">Rename a category by editing it. Giving it the name of another category merges them.</p><button class="lnk" data-a="mcats" style="padding-left:0">Done</button>'}
+function mgrHtml(){return S.cats.map(function(c,i){return '<div class="mrow"><input type="text" class="mc" data-i="'+i+'" value="'+esc(c)+'" maxlength="30" aria-label="Category name"><button class="ic hot" data-a="cdel" data-i="'+i+'" aria-label="Delete category">'+(delArm===i?'Delete?':'\u2715')+'</button></div>'}).join('')+'<input type="text" id="nc" placeholder="Add a new category" maxlength="30" enterkeyhint="done" aria-label="Add a new category" style="margin:4px 0 8px"><p class="hint">Rename a category by editing it. Giving it the name of another category merges them.</p><button class="lnk" data-a="mcats" style="padding-left:0">Done</button>'}
 function rowHtml(x){return '<li class="'+(x.done?'done':'')+'"><button class="chk" data-a="tog" data-k="'+esc(x.k)+'"><span class="box">'+(x.done?'\u2713':'')+'</span><span class="t">'+esc(x.text)+(x.src.length?'<small>'+esc(x.src.join(', '))+'</small>':'')+'</span></button><button class="ic" data-a="aisle" data-k="'+esc(x.k)+'" aria-label="Change aisle">\u22ef</button><button class="ic" data-a="deli" data-k="'+esc(x.k)+'" aria-label="Remove">\u2715</button></li>'+(aisleEdit===x.k?'<li class="ach">'+AISLES.map(function(a){return'<button class="chip'+(a===x.aisle?' on':'')+'" data-a="aset" data-k="'+esc(x.k)+'" data-v="'+esc(a)+'">'+esc(a)+'</button>'}).join('')+'</li>':'')}
 function listHtml(GR){return AISLES.map(function(a){var g=GR.filter(function(x){return x.aisle===a});return g.length?'<div class="ltr">'+esc(a)+'</div><ul class="rows">'+g.map(rowHtml).join('')+'</ul>':''}).join('')}
 var DB=null,ASSETS=null,DL=null,dbState='local',imp=null,snap={},syncT=null,busy=false,again=false;
@@ -337,7 +337,7 @@ function vListOld(){
 }
 function bchips(){return '<button class="chip'+(bookCats.indexOf('\u2605')>=0?' on':'')+'" data-a="bfil" data-v="\u2605">\u2605 Favourites</button>'+S.cats.map(function(c){return'<button class="chip'+(bookCats.indexOf(c)>=0?' on':'')+'" data-a="bfil" data-v="'+esc(c)+'">'+esc(c)+'</button>'}).join('')}
 function wantHtml(){if(!S.cats.length)return'';return '<p class="hint" style="margin:14px 0 8px">Include at least one of</p><div>'+S.cats.map(function(c){return'<button class="chip'+((S.want||[]).indexOf(c)>=0?' on':'')+'" data-a="wtog" data-v="'+esc(c)+'">'+esc(c)+'</button>'}).join('')+'</div>'}
-function catsHtml(){if(manageCats)return mgrHtml();return S.cats.map(function(c){return'<button class="chip'+(draftCats.indexOf(c)>=0?' on':'')+'" data-a="ctog" data-v="'+esc(c)+'">'+esc(c)+'</button>'}).join('')+(addingCat?'<input type="text" id="nc" class="chipin" placeholder="New category" maxlength="30" enterkeyhint="done" aria-label="New category">':'<button class="chip plus" data-a="newcat" aria-label="Add a category">+</button>')}
+function catsHtml(){if(manageCats)return mgrHtml();return S.cats.map(function(c){return'<button class="chip'+(draftCats.indexOf(c)>=0?' on':'')+'" data-a="ctog" data-v="'+esc(c)+'">'+esc(c)+'</button>'}).join('')}
 function commitCat(){var el=$('#nc'),nn=el?el.value.trim():'';addingCat=false;if(nn){var ex=S.cats.find(function(c){return c.toLowerCase()===nn.toLowerCase()}),cx=ex||nn;if(!ex)S.cats.push(nn);if(draftCats.indexOf(cx)<0)draftCats.push(cx);save()}var c=$('#cats');if(c)c.innerHTML=catsHtml()}
 function prevHtml(){return draftImg?'<img src="'+draftImg+'" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:6px"><button class="lnk hot" data-a="rmimg" style="padding-left:0">Remove photo</button>':''}
 function stepRow(n,v){return '<div class="sr"><span class="sn">'+n+'</span><textarea class="sb" aria-label="Step '+n+'" placeholder="Step '+n+'">'+esc(v)+'</textarea></div>'}
@@ -347,8 +347,8 @@ function stepsHtml(a){return a.concat(['']).map(function(v,i){return stepRow(i+1
 function vForm(){
   var r=editId?rec(editId):null;
   return '<h1>'+(r?'Edit recipe':'Add a recipe')+'</h1>'+(r?'':'<button class="lnk" data-a="mode" data-v="import" style="padding-left:0">Import several recipes at once</button>')+'<label for="fn">Name</label><input type="text" id="fn" value="'+esc(r?r.name:'')+'" placeholder="e.g. Lemon chicken">'+
-  '<label for="fv">Serves <span class="hint">number of people, optional</span></label><input type="text" id="fv" inputmode="numeric" value="'+(r&&r.serves?r.serves:'')+'" placeholder="e.g. 4">'+
-  '<label>Categories <span class="hint">tap to select, or add a new one</span> <button type="button" class="tl" data-a="mcats" style="margin-left:6px">Manage</button></label><div id="cats">'+catsHtml()+'</div>'+
+  '<label for="fv">Serves</label><input type="text" id="fv" inputmode="numeric" value="'+(r&&r.serves?r.serves:'')+'" placeholder="e.g. 4">'+
+  '<label>Categories <button type="button" class="tl" data-a="mcats" style="margin-left:6px">Manage</button></label><div id="cats">'+catsHtml()+'</div>'+
   '<label>Photo <span class="hint">optional</span></label><div id="imgprev">'+prevHtml()+'</div><label class="sec fbtn" for="fimg">Add photo</label><input type="file" id="fimg" accept="image/*">'+
   '<label>Ingredients</label><div id="ings">'+ingsHtml(r?r.ing:[])+'</div>'+
   '<label>Directions</label><div id="steps">'+stepsHtml(r?r.steps:[])+'</div>'+
@@ -389,7 +389,6 @@ function vDetail(r){
 document.addEventListener('input',function(e){if(e.target.id==='q'){q=e.target.value;$('#idx').innerHTML=idx()}if(e.target.id==='pq'){pq=e.target.value;$('#pidx').innerHTML=pidx()}if(e.target.id==='nt'&&openId){var nr=rec(openId);if(nr){nr.notes=e.target.value;save()}}
   if(e.target.classList&&e.target.classList.contains('ib')){var ib=document.querySelectorAll('#ings .ib');if(e.target===ib[ib.length-1]&&e.target.value.trim())$('#ings').insertAdjacentHTML('beforeend',ingRow(''))}
   if(e.target.classList&&e.target.classList.contains('sb')){var sb=document.querySelectorAll('#steps .sb');if(e.target===sb[sb.length-1]&&e.target.value.trim())$('#steps').insertAdjacentHTML('beforeend',stepRow(sb.length+1,''))}});
-document.addEventListener('focusout',function(e){if(e.target.id==='nc')setTimeout(function(){if(addingCat)commitCat()},0)});
 document.addEventListener('keydown',function(e){if(e.target.id==='nc'){if(e.key==='Enter'){e.preventDefault();commitCat()}else if(e.key==='Escape'){addingCat=false;$('#cats').innerHTML=catsHtml()}}if(e.key==='Enter'&&e.target.id==='ni'){e.preventDefault();var b=document.querySelector('[data-a=addi]');if(b)b.click()}});
 document.addEventListener('change',function(e){
   if(e.target.id!=='fimg'||!e.target.files[0])return;
@@ -405,8 +404,7 @@ document.addEventListener('click',function(e){
   else if(a==='bfil'){var bi=bookCats.indexOf(b.dataset.v);if(bi<0)bookCats.push(b.dataset.v);else bookCats.splice(bi,1);$('#bcats').innerHTML=bchips();$('#idx').innerHTML=idx();return}
   else if(a==='wtog'){var wi=S.want.indexOf(b.dataset.v);if(wi<0)S.want.push(b.dataset.v);else S.want.splice(wi,1);save()}
   else if(a==='ctog'){var ci=draftCats.indexOf(b.dataset.v);if(ci<0)draftCats.push(b.dataset.v);else draftCats.splice(ci,1);$('#cats').innerHTML=catsHtml();return}
-  else if(a==='newcat'){addingCat=true;$('#cats').innerHTML=catsHtml();var ni=$('#nc');if(ni)ni.focus();return}
-  else if(a==='mcats'){manageCats=!manageCats;delArm=-1;addingCat=false;$('#cats').innerHTML=catsHtml();return}
+  else if(a==='mcats'){if(manageCats){var pn=$('#nc');if(pn&&pn.value.trim())commitCat()}manageCats=!manageCats;delArm=-1;addingCat=false;$('#cats').innerHTML=catsHtml();return}
   else if(a==='cdel'){var di=+b.dataset.i;if(delArm!==di){delArm=di;$('#cats').innerHTML=catsHtml();return}var dnm=S.cats[di];S.cats.splice(di,1);swapCat(dnm,'');delArm=-1;save();$('#cats').innerHTML=catsHtml();return}
   else if(a==='fav'){var fr2=rec(id);if(!fr2)return;fr2.fav=!fr2.fav;save();if(!openId){$('#idx').innerHTML=idx();return}}
   else if(a==='aisle'){aisleEdit=aisleEdit===b.dataset.k?null:b.dataset.k}
