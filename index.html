@@ -21,9 +21,10 @@ html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:400 16px/1.45 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
 main{max-width:560px;margin:0 auto;padding:20px 16px 110px}
 h1{font-size:30px;font-weight:800;margin:4px 0 14px;letter-spacing:-.02em}
-h2{font-size:18px;font-weight:600;margin:20px 0 8px}
+h2{font-size:21px;font-weight:600;margin:20px 0 8px}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.pri.sm{width:auto;padding:9px 18px;font-size:15px;border-radius:10px}
 .pri{width:100%;background:var(--ac);color:var(--acink);border:0;border-radius:12px;padding:15px;font-weight:600;font-size:17px;margin:10px 0}
 .sec{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:10px 14px;font-weight:600}
 .lnk{background:none;border:0;color:var(--ac);font-weight:600;padding:8px 4px}
@@ -288,7 +289,7 @@ function fac(e){var r=e.rid?rec(e.rid):S.recipes.find(function(x){return x.name=
 function svBlock(r){var c=cur(r),mod=c!==r.serves;return '<div class="sv"><span class="hint">Serves</span><button class="svb" data-a="svm" data-id="'+r.id+'" aria-label="Fewer servings">−</button><span class="svn'+(mod?' mod':'')+'">'+c+'</span><button class="svb" data-a="svp" data-id="'+r.id+'" aria-label="More servings">+</button>'+'</div>'}
 function same(x,r,t){return x.src===r.name&&(x.ii?x.ii===t.id:gk(x)===gk(t))}
 function inList(r,t){return S.list.some(function(x){return same(x,r,t)})}
-function allBtn(r){return r.ing.every(function(t){return inList(r,t)})?'<button class="pri" data-a="unlist" data-id="'+r.id+'">✓ All ingredients added</button>':'<button class="pri" data-a="reclist" data-id="'+r.id+'">Add all ingredients</button>'}
+function allBtn(r){return r.ing.every(function(t){return inList(r,t)})?'<button class="pri sm" data-a="unlist" data-id="'+r.id+'">✓ All ingredients added</button>':'<button class="pri sm" data-a="reclist" data-id="'+r.id+'">Add all ingredients</button>'}
 function addToList(ids){
   var add=0,had=0;
   ids.forEach(function(id){var r=rec(id);if(!r)return;
