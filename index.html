@@ -146,7 +146,7 @@ function swapCat(o,nw){var f=function(a){var out=[];(a||[]).forEach(function(c){
 function mgrHtml(){return S.cats.map(function(c,i){return '<div class="mrow"><input type="text" class="mc" data-i="'+i+'" value="'+esc(c)+'" maxlength="30" aria-label="Category name"><button class="ic hot" data-a="cdel" data-i="'+i+'" aria-label="Delete category">'+(delArm===i?'Delete?':'\u2715')+'</button></div>'}).join('')+'<div class="mrow"><input type="text" id="nc" placeholder="Add a new category" maxlength="30" enterkeyhint="done" aria-label="Add a new category"><button class="ic" disabled tabindex="-1" aria-hidden="true" style="visibility:hidden">\u2715</button></div><button class="lnk" data-a="mcats" style="padding-left:0">Done</button>'}
 function rowHtml(x){return '<li class="'+(x.done?'done':'')+'"><button class="chk" data-a="tog" data-k="'+esc(x.k)+'"><span class="box">'+(x.done?'\u2713':'')+'</span><span class="t">'+esc(x.text)+(x.src.length?'<small>'+esc(x.src.join(', '))+'</small>':'')+'</span></button><button class="ic" data-a="aisle" data-k="'+esc(x.k)+'" aria-label="Change aisle">\u22ef</button><button class="ic" data-a="deli" data-k="'+esc(x.k)+'" aria-label="Remove">\u2715</button></li>'+(aisleEdit===x.k?'<li class="ach">'+AISLES.map(function(a){return'<button class="chip'+(a===x.aisle?' on':'')+'" data-a="aset" data-k="'+esc(x.k)+'" data-v="'+esc(a)+'">'+esc(a)+'</button>'}).join('')+'</li>':'')}
 function listHtml(GR){return AISLES.map(function(a){var g=GR.filter(function(x){return x.aisle===a});return g.length?'<div class="ltr">'+esc(a)+'</div><ul class="rows">'+g.map(rowHtml).join('')+'</ul>':''}).join('')}
-var DB=null,ASSETS=null,DL=null,dbState='local',imp=null,snap={},syncT=null,busy=false,again=false;
+var DB=null,ASSETS=null,DL=null,dbState='local',imp=null,impAdd=false,snap={},syncT=null,busy=false,again=false;
 var IDB=null,PH_OK=false,photoSaved={};
 function idbOpen(){return new Promise(function(res){try{var q=indexedDB.open('weeklymeals',1);q.onupgradeneeded=function(){q.result.createObjectStore('photos')};q.onsuccess=function(){res(q.result)};q.onerror=function(){res(null)}}catch(e){res(null)}})}
 function idbPut(k,v){return new Promise(function(res){if(!IDB)return res();try{var t=IDB.transaction('photos','readwrite');t.objectStore('photos').put(v,k);t.oncomplete=res;t.onerror=res}catch(e){res()}})}
@@ -172,7 +172,8 @@ function setStatus(st){dbState=st;var f=$('#foot');if(f)f.innerHTML=footHtml()}
 function footHtml(){
   var st=DB?(dbState==='error'?'Couldn’t reach account storage, saved on this device':'Saved to your account'):'Saved on this device only';
   var h='<p class="foot">'+st+' · <button class="tl" data-a="expb">Export backup</button> · <label class="tl" for="bk">Import backup</label></p>';
-  if(imp)h+='<div class="empty">Replace everything in your cookbook with this backup of '+imp.recipes.length+' recipe'+(imp.recipes.length===1?'':'s')+'?<br><button class="lnk hot" data-a="impok">Replace</button><button class="lnk" data-a="impno">Cancel</button></div>';
+  if(imp&&impAdd)h+='<div class="empty">Add '+imp.recipes.length+' recipe'+(imp.recipes.length===1?'':'s')+' to your cookbook? Recipes you already have are skipped.<br><button class="lnk hot" data-a="impadd">Add</button><button class="lnk" data-a="impno">Cancel</button></div>';
+  else if(imp)h+='<div class="empty">Replace everything in your cookbook with this backup of '+imp.recipes.length+' recipe'+(imp.recipes.length===1?'':'s')+'?<br><button class="lnk hot" data-a="impok">Replace</button><button class="lnk" data-a="impno">Cancel</button></div>';
   return h}
 async function sync(){
   if(!DB)return;if(busy){again=true;return}busy=true;
@@ -427,7 +428,8 @@ document.addEventListener('click',function(e){
   else if(a==='aisle'){aisleEdit=aisleEdit===b.dataset.k?null:b.dataset.k}
   else if(a==='aset'){var ag=groups().find(function(x){return x.k===b.dataset.k});if(ag){S.aisles[nk(ag.n)]=b.dataset.v;save()}aisleEdit=null}
   else if(a==='expb'){exportB();return}
-  else if(a==='impno'){imp=null}
+  else if(a==='impno'){imp=null;impAdd=false}
+  else if(a==='impadd'){var have={},added=0;S.recipes.forEach(function(r){have[r.name.toLowerCase()]=1});imp.recipes.forEach(function(t){if(!t||!t.name||have[t.name.toLowerCase()])return;var r=JSON.parse(JSON.stringify(t));delete r.imgId;r.id=uid()+Math.random().toString(36).slice(2,5);r.last=0;r.notes=r.notes||'';r.img=r.img||'';r.cats=(r.cats||[]).map(function(c){return S.cats.find(function(x){return x.toLowerCase()===String(c).toLowerCase()})}).filter(Boolean);r.ing=(r.ing||[]).map(function(i){i.id=uid()+Math.random().toString(36).slice(2,5);return i});S.recipes.push(r);have[t.name.toLowerCase()]=1;added++});imp=null;impAdd=false;save();toast(added+' recipe'+(added===1?'':'s')+' added')}
   else if(a==='impok'){var base={recipes:[],plans:{},n:5,list:[],done:{},sv:{},ppl:{},cats:['Chicken','Meat','Fish','Seafood','Pasta','Rice','Vegetarian'],want:[]};S=Object.assign(base,imp);S.recipes.forEach(function(r){delete r.imgId});S.seeded=(S.seeded||[]).concat(STARTER.map(function(t){return t.key}));imp=null;migrate();save();toast('Backup restored')}
   else if(a==='rmimg'){draftImg='';$('#imgprev').innerHTML=prevHtml();return}
   else if(a==='pinc'||a==='pdec'){S.ppl[wk()]=Math.max(1,Math.min(99,people()+(a==='pinc'?1:-1)));save()}
@@ -483,7 +485,7 @@ document.addEventListener('change',function(e){var t=e.target;if(!t.classList||!
   var j=S.cats.findIndex(function(c,k){return k!==i&&c.toLowerCase()===nn.toLowerCase()});
   if(j>=0){var tg=S.cats[j];swapCat(old,tg);S.cats.splice(i,1);save();$('#cats').innerHTML=catsHtml();toast('Merged into '+tg)}else{swapCat(old,nn);S.cats[i]=nn;save();delete t.dataset.busy}});
 document.addEventListener('change',function(e){var t=e.target;if(t.classList&&t.classList.contains('iu'))t.classList.toggle('blank',!t.value)});
-document.addEventListener('change',function(e){if(e.target.id!=='bk'||!e.target.files[0])return;var fr=new FileReader();fr.onload=function(){try{var o=JSON.parse(fr.result);if(!o||o.app!=='weekly-meals'||!o.data||!Array.isArray(o.data.recipes))throw 0;imp=o.data;var f=$('#foot');if(f)f.innerHTML=footHtml()}catch(x){toast('That doesn’t look like a cookbook backup')}};fr.readAsText(e.target.files[0]);e.target.value=''});
+document.addEventListener('change',function(e){if(e.target.id!=='bk'||!e.target.files[0])return;var fr=new FileReader();fr.onload=function(){try{var o=JSON.parse(fr.result);if(!o||o.app!=='weekly-meals'||!o.data||!Array.isArray(o.data.recipes))throw 0;imp=o.data;impAdd=o.mode==='add';var f=$('#foot');if(f)f.innerHTML=footHtml()}catch(x){toast('That doesn’t look like a cookbook backup')}};fr.readAsText(e.target.files[0]);e.target.value=''});
 render();
 if(seedMsg)toast(seedMsg);
 initDb();
